@@ -3,9 +3,30 @@ import os
 
 app = Flask(__name__)
 
+password = input("Enter your password :")
+
+PASSKEY = password
+
+@app.before_request
+def check_token():
+    if request.endpoint not in ['index','download','loging']:
+        token = request.headers.get("PASSKEY")
+        if token != PASSKEY:
+            abort(401)
+
+@app.route('/loging',methods = ['POST'])
+def loging():
+    data = request.get_json()
+    if data['passkey'] == PASSKEY:
+        return jsonify({'status':'ok'})
+    else:
+        return jsonify({'status':'error'})
+
 Folder = 'Folder'
 os.makedirs(Folder , exist_ok=True)
 app.config['Folder'] = Folder
+
+
 
 @app.route('/')
 def index():

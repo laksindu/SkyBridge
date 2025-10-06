@@ -1,5 +1,16 @@
 <html>
     <body>
+        <h1>SkyBridge</h1>
+        <br>
+        <div id="loging">
+            <input type="password" id="user_password" placeholder="Enter password">
+            <button onclick="U_password()">Click</button>
+        </div>
+        <br>
+
+        <button onclick="removepass()" id="removepass">Logout</button>
+        <br>
+
         <div id="uploadform">
             <input type="file" id="fileinput">
             <button onclick="uploadbtn()">Upload</button>
@@ -9,9 +20,42 @@
 
 
         <script>
+            const removepassbtn  = document.getElementById("removepass")
+            const loging = document.getElementById("loging")
+            const user_password = document.getElementById("user_password")
             const outlist = document.getElementById("list")
             const uploadform = document.getElementById("uploadform")
             const fileinput = document.getElementById("fileinput")
+
+            let storepassword = localStorage.getItem("passkey")
+
+            function U_password(){
+                let upassword = user_password.value
+                if(upassword){
+                    fetch('/loging',{
+                        method:"POST",
+                        headers:{ "Content-Type": "application/json" },
+                        body: JSON.stringify({"passkey":upassword})
+                    })
+                    .then(function(response){
+                        return response.json()
+                    })
+                    .then(function(data){
+                        if(data.status == "ok"){
+                            localStorage.setItem("passkey" , upassword)
+                            location.reload()
+                        }else if(data.status == "error"){
+                            alert("Please Enter correct password")
+                            location.reload()
+                        }
+                    })
+                }
+            }
+
+            function removepass(){
+                localStorage.removeItem("passkey")
+                location.reload()
+            }
 
             function uploadbtn(){
                 if(fileinput.files.length > 0){
@@ -20,6 +64,9 @@
 
                     fetch('/upload',{
                         method:"POST",
+                        headers:{
+                            "passkey":`${storepassword}`
+                        },
                         body:filedata
                     })
                     setTimeout(function(){
@@ -30,7 +77,11 @@
             }
 
             function donwload(){
-                fetch('/api/files')
+                fetch('/api/files',{
+                    headers:{
+                        "passkey":`${storepassword}`
+                    }
+                })
                 .then(function(response){
                     return response.json()
                 })
@@ -55,10 +106,32 @@
                 let user_confirm = confirm(`Do you want to delete ${filename}`)
                 if(user_confirm){
                     fetch(`/delete/${filename}`,{
-                        method:"POST"
+                        method:"POST",
+                        headers:{
+                            "passkey":`${storepassword}`
+                        }
                     })
                 }
             }
+
+            function if_key(){
+                if(storepassword){
+                    loging.style.display = "none"
+                }
+            }
+
+            if_key()
+
+            function if_notkey(){
+                if(!storepassword){
+                    uploadform.style.display = "none"
+                    outlist.style.display = "none"
+                    removepassbtn.style.display = "none"
+
+
+                }
+            }
+            if_notkey()
 
             setInterval(donwload,1000)
         </script>

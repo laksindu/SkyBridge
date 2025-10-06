@@ -133,6 +133,12 @@
             }
             if_notkey()
 
+            user_password.addEventListener("keypress",function(e){
+                if(e.key === "Enter"){
+                    U_password()
+                }
+            })
+
             setInterval(donwload,1000)
         </script>
     </body>

@@ -1,0 +1,66 @@
+<html>
+    <body>
+        <div id="uploadform">
+            <input type="file" id="fileinput">
+            <button onclick="uploadbtn()">Upload</button>
+        </div>
+
+        <ul id="list"></ul>
+
+
+        <script>
+            const outlist = document.getElementById("list")
+            const uploadform = document.getElementById("uploadform")
+            const fileinput = document.getElementById("fileinput")
+
+            function uploadbtn(){
+                if(fileinput.files.length > 0){
+                    const filedata = new FormData()
+                    filedata.append('file' , fileinput.files[0])
+
+                    fetch('/upload',{
+                        method:"POST",
+                        body:filedata
+                    })
+                    setTimeout(function(){
+                       fileinput.value = "" 
+                    },2000)
+                    
+                }
+            }
+
+            function donwload(){
+                fetch('/api/files')
+                .then(function(response){
+                    return response.json()
+                })
+                .then(function(data){
+                    console.log(data)
+                    outlist.innerHTML = ""
+                    data.forEach(function(datainfo){
+                        let li = document.createElement("li")
+                        li.innerHTML = `<a href = "/download/${datainfo}">${datainfo}</a>`
+                        outlist.appendChild(li)
+                        let dltbutton = document.createElement("button")
+                        dltbutton.innerHTML = "Delete"
+                        dltbutton.onclick = function(){
+                            deletebtn(datainfo)
+                        }
+                        li.appendChild(dltbutton)
+                    })
+                })
+            }
+
+            function deletebtn(filename){
+                let user_confirm = confirm(`Do you want to delete ${filename}`)
+                if(user_confirm){
+                    fetch(`/delete/${filename}`,{
+                        method:"POST"
+                    })
+                }
+            }
+
+            setInterval(donwload,1000)
+        </script>
+    </body>
+</html>

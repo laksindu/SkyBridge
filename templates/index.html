@@ -2,84 +2,91 @@
     <body>
         <h1>SkyBridge</h1>
         <br>
-        <div id="loging">
-            <input type="password" id="user_password" placeholder="Enter password">
-            <button onclick="U_password()">Click</button>
+
+        <div id="register">
+            <input type="password" id="userPassword">
+            <button onclick="GET()">Click</button>
         </div>
-        <br>
 
-        <button onclick="removepass()" id="removepass">Logout</button>
-        <br>
+        <button onclick="rem()" id="logoutbtn">Logout</button>
 
-        <div id="uploadform">
+        <div id="fileform">
             <input type="file" id="fileinput">
-            <button onclick="uploadbtn()">Upload</button>
+            <button onclick="upload()">Upload</button>
         </div>
+
+        
 
         <ul id="list"></ul>
 
-
         <script>
-            const removepassbtn  = document.getElementById("removepass")
-            const loging = document.getElementById("loging")
-            const user_password = document.getElementById("user_password")
-            const outlist = document.getElementById("list")
-            const uploadform = document.getElementById("uploadform")
+            const logoutbtn = document.getElementById("logoutbtn")
+            const registerForm = document.getElementById("register")
+            const fileform = document.getElementById("fileform")
+            const userPassword = document.getElementById("userPassword")
             const fileinput = document.getElementById("fileinput")
+            const outlist = document.getElementById("list")
 
-            let storepassword = localStorage.getItem("passkey")
+            let pass_key = localStorage.getItem("passkey")
 
-            function U_password(){
-                let upassword = user_password.value
-                if(upassword){
-                    fetch('/loging',{
+            function GET(){
+                let user_Password = userPassword.value
+                if(user_Password){
+                    fetch('/login',{
                         method:"POST",
-                        headers:{ "Content-Type": "application/json" },
-                        body: JSON.stringify({"passkey":upassword})
+                        headers:{
+                            "Content-Type":"application/json"
+                        },
+                        body: JSON.stringify({"passkey":user_Password})
                     })
                     .then(function(response){
                         return response.json()
                     })
                     .then(function(data){
                         if(data.status == "ok"){
-                            localStorage.setItem("passkey" , upassword)
+                            localStorage.setItem("passkey" , user_Password)
                             location.reload()
                         }else if(data.status == "error"){
                             alert("Please Enter correct password")
                             location.reload()
                         }
                     })
+                }else{
+                    alert("Enter password")
                 }
             }
 
-            function removepass(){
+            function rem(){
                 localStorage.removeItem("passkey")
                 location.reload()
             }
 
-            function uploadbtn(){
+            function upload(){
+
                 if(fileinput.files.length > 0){
                     const filedata = new FormData()
-                    filedata.append('file' , fileinput.files[0])
+                    filedata.append('file', fileinput.files[0])
 
                     fetch('/upload',{
                         method:"POST",
                         headers:{
-                            "passkey":`${storepassword}`
+                            "passkey":pass_key
                         },
                         body:filedata
                     })
+
                     setTimeout(function(){
-                       fileinput.value = "" 
+                        fileinput.value = ""
                     },2000)
-                    
                 }
+
+
             }
 
-            function donwload(){
+            function downlaod(){
                 fetch('/api/files',{
                     headers:{
-                        "passkey":`${storepassword}`
+                        "passkey":pass_key
                     }
                 })
                 .then(function(response){
@@ -87,6 +94,7 @@
                 })
                 .then(function(data){
                     console.log(data)
+
                     outlist.innerHTML = ""
                     data.forEach(function(datainfo){
                         let li = document.createElement("li")
@@ -95,51 +103,49 @@
                         let dltbutton = document.createElement("button")
                         dltbutton.innerHTML = "Delete"
                         dltbutton.onclick = function(){
-                            deletebtn(datainfo)
+                            deleteBtn(datainfo)
                         }
                         li.appendChild(dltbutton)
                     })
                 })
             }
+            setInterval(downlaod,1000)
 
-            function deletebtn(filename){
+            function deleteBtn(filename){
                 let user_confirm = confirm(`Do you want to delete ${filename}`)
                 if(user_confirm){
                     fetch(`/delete/${filename}`,{
                         method:"POST",
                         headers:{
-                            "passkey":`${storepassword}`
+                            "passkey":pass_key
                         }
                     })
                 }
             }
 
-            function if_key(){
-                if(storepassword){
-                    loging.style.display = "none"
+            function if_passkey(){
+                let pass_key = localStorage.getItem("passkey")
+                if(pass_key){
+                    registerForm.style.display = "none"
                 }
             }
-
-            if_key()
+            if_passkey()
 
             function if_notkey(){
-                if(!storepassword){
-                    uploadform.style.display = "none"
+                let pass_key = localStorage.getItem("passkey")
+                if(!pass_key){
+                    fileform.style.display = "none"
+                    logoutbtn.style.display = "none"
                     outlist.style.display = "none"
-                    removepassbtn.style.display = "none"
-
-
                 }
             }
             if_notkey()
 
-            user_password.addEventListener("keypress",function(e){
-                if(e.key === "Enter"){
-                    U_password()
+            userPassword.addEventListener("keypress" , function(e){
+                if(e.key == "Enter"){
+                    GET()
                 }
             })
-
-            setInterval(donwload,1000)
         </script>
     </body>
 </html>

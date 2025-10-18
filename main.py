@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 PASSKEY = os.getenv('PASSKEY')
 
+
 if not PASSKEY:
     PASSKEY = input('Set a password for accessing the API endpoints: ')
     with open('.env', 'a') as f:
@@ -30,10 +31,17 @@ def log():
         return jsonify({'status':'error'})
 
 
-Folder_input = input('Enter the folder path to serve files from: ')
+Folder = os.getenv('FOLDER')
 
-Folder = Folder_input
-os.makedirs(Folder , exist_ok=True)
+if not Folder:
+    Folder = input('Set the folder path for file storage: ')
+    with open('.env', 'a') as f:
+        f.write(f'FOLDER={Folder}\n')
+    print('Folder path saved to .env file')
+
+
+
+os.makedirs(Folder, exist_ok=True)
 app.config['Folder'] = Folder
 
 @app.route('/')

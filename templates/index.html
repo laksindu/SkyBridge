@@ -64,20 +64,33 @@
             function upload(){
 
                 if(fileinput.files.length > 0){
-                    const filedata = new FormData()
-                    filedata.append('file', fileinput.files[0])
 
-                    fetch('/upload',{
-                        method:"POST",
-                        headers:{
-                            "passkey":pass_key
-                        },
-                        body:filedata
-                    })
+                    const file= fileinput.files[0]
 
-                    setTimeout(function(){
-                        fileinput.value = ""
-                    },2000)
+                    let file_size = 1.5 * 1024 * 1024 * 1024
+
+                    if(file.size <= file_size){
+                        
+                        const filedata = new FormData()
+                        filedata.append('file', fileinput.files[0])
+
+                        fetch('/upload',{
+                            method:"POST",
+                            headers:{
+                                "passkey":pass_key
+                            },
+                            body:filedata
+                        })
+
+                        setTimeout(function(){
+                            fileinput.value = ""
+                        },2000)                        
+
+                    }
+                    else{
+                        alert("File size exceeds 1.5GB")
+                    }
+
                 }
 
 

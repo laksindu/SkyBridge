@@ -29,12 +29,14 @@ python SkyBridge.py
 The admin panel will open in your browser
 
 ## Linux Setup
--Python 3.10 or newer
+Python 3.10 or newer
 
 Check your Python version:
+```bash
 python3 --version
+```
 
--if needed:
+if needed:
 ```bash
 sudo apt update
 sudo apt install python3 python3-pip python3-venv

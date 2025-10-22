@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SkyBridge</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<style>
+body {
+    font-family: 'Roboto', 'Arial', sans-serif;
+    background-color: #e8eaf6;
+    color: #333;
+    margin: 0;
+    padding: 30px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+h2 {
+    color: #3f51b5;
+    border-bottom: 2px solid #c5cae9;
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 500;
+    text-align: center;
+    font-size: clamp(1.5em, 5vw, 2em);
+    width: 100%;
+}
+
+#setupForm, #loginForm, #adminPanel {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 400px;
+    transition: all 0.5s ease;
+    border-top: 5px solid #3f51b5;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+}
+
+input {
+    width: 100%;
+    padding: 12px 10px;
+    margin-bottom: 15px;
+    border: 1px solid #bdbdbd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+input:focus {
+    border-color: #3f51b5;
+    box-shadow: 0 0 5px rgba(63, 81, 181, 0.5);
+    outline: none;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    box-sizing: border-box;
+}
+
+button:hover {
+    background-color: #303f9f;
+}
+
+button:active {
+    transform: translateY(2px);
+}
+
+[style*="display:none"] {
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    transition: opacity 0.3s ease, height 0s linear 0.3s;
+}
+
+.shutdownbtn {
+    background-color: #e53935;
+    margin-top: 10px;
+}
+
+.shutdownbtn:hover {
+    background-color: #c62828;
+}
+
+#setupForm[style*="block"], 
+#loginForm[style*="block"], 
+#adminPanel[style*="block"] {
+    opacity: 1;
+    height: auto;
+    padding: 25px;
+    margin-bottom: 20px;
+    transition: opacity 0.5s ease, height 0s linear 0s;
+}
+
+#adminFooter {
+    width: 100%;
+    max-width: 400px;
+    padding: 15px 0;
+    margin-top: auto;
+    text-align: center;
+    color: #7986cb;
+    font-size: 0.8em;
+}
+
+@media (max-width: 400px) {
+    body {
+        padding: 15px 5px;
+    }
+
+    #setupForm, #loginForm, #adminPanel {
+        padding: 20px;
+    }
+}
+
+
+</style>
+<body>
+<div id="setupForm" style="display:none;">
+  <h2>First-Time Setup</h2>
+  <input id="passkey" placeholder="Set Password"><br>
+  <input id="folder" placeholder="Set Folder Path"><br>
+  <button onclick="saveSetup()" id="saveSetupbtn">Save</button>
+  <button onclick="Shutdown()" id="shutdownbtn" class="shutdownbtn">Shutdown</button>
+</div>
+
+<div id="loginForm" style="display:none;">
+  <h2>Admin Login</h2>
+  <input id="loginPass" type="password" placeholder="Enter Password"><br>
+  <button onclick="login()">Login</button>
+</div>
+
+<div id="adminPanel" style="display:none;">
+  <h2>Admin Control</h2>
+  <p><strong>Server IP:</strong> <span id="ip">Loading...</span></p>
+  <input id="newPass" placeholder="New Password"><br>
+  <input id="newFolder" placeholder="New Folder Path"><br>
+  <button onclick="updateConfig()" id="updatebtn">Update</button><br>
+  <button onclick="Shutdown()" id="shutdownbtn" class="shutdownbtn">Shutdown</button>
+</div>
+
+<script>
+  const saveSetupbtn = document.getElementById("saveSetupbtn")
+  const updatebtn = document.getElementById("updateConfig")
+  const shutdownbtn = document.getElementById("shutdownbtn")
+  const password  = document.getElementById('loginPass');
+
+  shutdownbtn.style.display = "none";
+
+async function checkStatus(){
+  const res = await fetch('/setup-status');
+  const data = await res.json();
+
+  if(data.status === "not"){
+    document.getElementById('setupForm').style.display = "block";
+  }else{
+    document.getElementById('loginForm').style.display = "block";
+  }
+}
+checkStatus();
+
+function getip(){
+  fetch('/get-ip')
+  .then(function(response){
+    return response.json()
+  })
+  .then(function(data){
+    document.getElementById('ip').innerHTML = `${data.ip}:${data.port}`;
+  })
+}
+
+getip()
+
+async function saveSetup(){
+  const passkey = document.getElementById('passkey').value;
+  const folder = document.getElementById('folder').value;
+  const res = await fetch('/setup', {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({passkey, folder})
+  });
+  const data = await res.json();
+  if(data.status === "saved"){
+    sessionStorage.setItem("passkey", passkey);
+    saveSetupbtn.style.display = "none";
+    shutdownbtn.style.display = "block";
+    alert("Setup complete! Please shutdown the server and start again.");
+  }
+}
+
+async function login(){
+  const passkey = document.getElementById('loginPass').value;
+  const res = await fetch('/login-admin', {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({passkey})
+  });
+  const data = await res.json();
+  if(data.check === "ok"){
+    sessionStorage.setItem("passkey", passkey);
+    document.getElementById('loginForm').style.display = "none";
+    document.getElementById('adminPanel').style.display = "block";
+  }else{
+    alert("Wrong password");
+  }
+}
+
+function updateConfig() {
+  const new_passkey = document.getElementById('newPass').value;
+  const new_folder = document.getElementById('newFolder').value;
+  fetch('/update-settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        token: sessionStorage.getItem('passkey'), // your saved password
+        new_pass: new_passkey,
+        new_folder: new_folder
+    })
+})
+
+  alert("Settings updated. Please shutdown the server and start again.");
+  location.reload();
+}
+
+password.addEventListener("keypress", function(e){
+  if(e.key === "Enter"){
+    login()
+  }
+})
+
+function Shutdown(){
+  fetch('/shutdown',{
+    method:"POST",
+    headers: {"Content-Type": "application/json"}
+  })
+}
+
+</script>
+      <footer id="adminFooter">
+            <p>&copy; 2025 SkyBridge v1 - Secure File Sharing</p>
+      </footer>
+</body>
+</html>

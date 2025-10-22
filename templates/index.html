@@ -1,0 +1,344 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SkyBridge</title>
+        <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    </head>
+    <style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    margin: 0;
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+h1 {
+    color: #1e88e5;
+    margin-bottom: 30px;
+    border-bottom: 3px solid #1e88e5;
+    padding-bottom: 10px;
+    font-size: clamp(1.8em, 5vw, 2.5em);
+    font-weight: 300;
+    text-align: center;
+    width: 100%;
+    max-width: 450px;
+}
+
+#register, #fileform {
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 450px;
+    box-sizing: border-box;
+}
+
+input[type="password"], input[type="file"] {
+    width: 100%;
+    padding: 12px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+    box-sizing: border-box;
+    min-width: 0; 
+}
+
+button {
+    cursor: pointer;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.1s;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+#register button, #fileform button {
+    background-color: #1e88e5;
+    color: white;
+}
+
+#logoutbtn {
+    background-color: #ff5722;
+    color: white;
+    margin-bottom: 15px;
+    width: 100%;
+    max-width: 450px;
+    box-sizing: border-box;
+}
+
+#list {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    max-width: 600px;
+    margin-top: 20px;
+    box-sizing: border-box;
+}
+
+#list li {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background-color: #ffffff;
+    border-radius: 4px;
+    border-left: 5px solid #4caf50;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+#list li a {
+    text-decoration: none;
+    color: #00796b;
+    font-weight: 500;
+    width: 100%;
+    word-break: break-all;
+    margin-bottom: 8px;
+}
+
+#list li button {
+    background-color: #f44336;
+    color: white;
+    padding: 8px 12px;
+    font-size: 0.9em;
+    width: auto;
+    align-self: flex-end;
+}
+
+#Footer {
+    width: 100%;
+    max-width: 400px;
+    padding: 15px 0;
+    margin-top: auto;
+    text-align: center;
+    color: #7986cb;
+    font-size: 0.8em;
+}
+
+@media (min-width: 600px) {
+
+    #register, #fileform {
+        flex-direction: row;
+    }
+
+    #register input, #fileform input {
+        width: auto;
+        flex-grow: 1; 
+    }
+    
+    #register button, #fileform button {
+        width: auto;
+        flex-shrink: 0;
+    }
+
+    #list li {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    #list li a {
+        margin-bottom: 0;
+        margin-right: 15px;
+    }
+
+    #list li button {
+        width: auto;
+        align-self: center;
+    }
+}
+    </style>
+    <body>
+        <h1>SkyBridge</h1>
+        <br>
+
+        <div id="register">
+            <input type="password" id="userPassword">
+            <button onclick="GET()">Click</button>
+        </div>
+
+        <button onclick="rem()" id="logoutbtn">Logout</button>
+
+        <div id="fileform">
+            <input type="file" id="fileinput">
+            <button onclick="upload()">Upload</button>
+        </div>
+
+        
+
+        <ul id="list"></ul>
+
+        <script>
+            const logoutbtn = document.getElementById("logoutbtn")
+            const registerForm = document.getElementById("register")
+            const fileform = document.getElementById("fileform")
+            const userPassword = document.getElementById("userPassword")
+            const fileinput = document.getElementById("fileinput")
+            const outlist = document.getElementById("list")
+
+            let pass_key = localStorage.getItem("passkey")
+
+            function login(){
+                fetch('/checkFolder')
+                .then(function(response){
+                    return response.json()
+                })
+                .then(function(data){
+                    if(data.status == "no_folder"){
+                        alert("Please set folder path in admin panel")
+                    }
+                })
+            }
+
+            login()
+
+            function GET(){
+                let user_Password = userPassword.value
+                if(user_Password){
+                    fetch('/login',{
+                        method:"POST",
+                        headers:{
+                            "Content-Type":"application/json"
+                        },
+                        body: JSON.stringify({"passkey":user_Password})
+                    })
+                    .then(function(response){
+                        return response.json()
+                    })
+                    .then(function(data){
+                        if(data.status == "ok"){
+                            localStorage.setItem("passkey" , user_Password)
+                            location.reload()
+                        }else if(data.status == "error"){
+                            alert("Please Enter correct password")
+                            location.reload()
+                        }
+                    })
+                }else{
+                    alert("Enter password")
+                }
+            }
+
+            function rem(){
+                localStorage.removeItem("passkey")
+                location.reload()
+            }
+
+            function upload(){
+
+                if(fileinput.files.length > 0){
+
+                    const file= fileinput.files[0]
+
+                    let file_size = 1.5 * 1024 * 1024 * 1024
+
+                    if(file.size <= file_size){
+                        
+                        const filedata = new FormData()
+                        filedata.append('file', fileinput.files[0])
+
+                        fetch('/upload',{
+                            method:"POST",
+                            headers:{
+                                "passkey":pass_key
+                            },
+                            body:filedata
+                        })
+
+                        setTimeout(function(){
+                            fileinput.value = ""
+                        },2000)                        
+
+                    }
+                    else{
+                        alert("File size exceeds 1.5GB")
+                    }
+
+                }
+
+
+            }
+
+            function downlaod(){
+                fetch('/api/files',{
+                    headers:{
+                        "passkey":pass_key
+                    }
+                })
+                .then(function(response){
+                    return response.json()
+                })
+                .then(function(data){
+                    console.log(data)
+
+                    outlist.innerHTML = ""
+                    data.forEach(function(datainfo){
+                        let li = document.createElement("li")
+                        li.innerHTML = `<a href = "/download/${datainfo}">${datainfo}</a>`
+                        outlist.appendChild(li)
+                        let dltbutton = document.createElement("button")
+                        dltbutton.innerHTML = "Delete"
+                        dltbutton.onclick = function(){
+                            deleteBtn(datainfo)
+                        }
+                        li.appendChild(dltbutton)
+                    })
+                })
+            }
+            setInterval(downlaod,1000)
+
+            function deleteBtn(filename){
+                let user_confirm = confirm(`Do you want to delete ${filename}`)
+                if(user_confirm){
+                    fetch(`/delete/${filename}`,{
+                        method:"POST",
+                        headers:{
+                            "passkey":pass_key
+                        }
+                    })
+                }
+            }
+
+            function if_passkey(){
+                let pass_key = localStorage.getItem("passkey")
+                if(pass_key){
+                    registerForm.style.display = "none"
+                }
+            }
+            if_passkey()
+
+            function if_notkey(){
+                let pass_key = localStorage.getItem("passkey")
+                if(!pass_key){
+                    fileform.style.display = "none"
+                    logoutbtn.style.display = "none"
+                    outlist.style.display = "none"
+                }
+            }
+            if_notkey()
+
+            userPassword.addEventListener("keypress" , function(e){
+                if(e.key == "Enter"){
+                    GET()
+                }
+            })
+        </script>       
+            <footer id="Footer">
+                    <p>&copy; 2025 SkyBridge v1 - Secure File Sharing</p>
+            </footer>
+    </body>
+</html>

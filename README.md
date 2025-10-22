@@ -18,7 +18,8 @@ SkyBridge is a lightweight **Flask-based file server** that lets you use any com
 
 ## Installation
 
-### Option 1 — Run from source
+## Option 1 — Run from source
+## Windows setup
 Make sure you have **Python 3.10+** installed.
 
 ```bash
@@ -26,6 +27,45 @@ pip install flask python-dotenv
 python SkyBridge.py
 ```
 The admin panel will open in your browser
+
+## Linux Setup
+-Python 3.10 or newer
+
+Check your Python version:
+python3 --version
+
+-if needed:
+```bash
+sudo apt update
+sudo apt install python3 python3-pip python3-venv
+```
+## Step-by-Step Setup
+1. Download the project
+
+If using Git:
+```bash
+git clone https://github.com/your-username/SkyBridge.git
+cd SkyBridge
+```
+Or extract the .zip and open the folder in terminal.
+
+2. Create and activate a virtual environment
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+3. Install dependencies
+```bash
+pip install flask python-dotenv
+```
+4. Run the ap
+```bash
+python SkyBridge.py
+```
+
+SkyBridge will start and open the admin panel at:
+`http://localhost:5000/admin`
+
 
 ## Option 2 — Run compiled EXE (Windows)
 - Download the latest .exe file from Releases
@@ -36,8 +76,8 @@ The admin panel will open in your browser
 - Download the Linux binary from Releases
 - Make it executable:
 ```bash
-chmod +x SkyBridge-linux
-./SkyBridge-linux
+chmod +x SkyBridge_linux
+./SkyBridge_linux
 ```
 Open your browser → http://localhost:5000/admin
 
